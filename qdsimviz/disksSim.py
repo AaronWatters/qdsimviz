@@ -30,7 +30,8 @@ class DisksSim:
     gravity = False
     gravitational_constant = 100.0
     earth = False
-    earth_acceleration = 100.0
+    earth_acceleration = -100.0 # Y goes up, so negative is down
+    count = 0
 
     def __init__(self):
         self.border = self.make_border()
@@ -54,18 +55,24 @@ class DisksSim:
         for disk in self.dots:
             disk.move(dt)
             disk.boundary_bounce(self.border)
+        ndots = len(self.dots)
+        status_text = f"moving {ndots} disk{'s' if ndots != 1 else ''}"
         for i in range(len(self.dots)):
             for j in range(i + 1, len(self.dots)):
                 if self.dots[i].collides_with(self.dots[j]):
                     #print(f"Collision between disk {i} and disk {j}")
                     self.dots[i].bounce(self.dots[j])
         if self.gravity:
+            status_text += " with gravity"
             for i in range(len(self.dots)):
                 for j in range(i + 1, len(self.dots)):
                     self.dots[i].gravity(self.dots[j], dt, G=self.gravitational_constant)
         if self.earth:
+            status_text += " with earth attraction"
             for dot in self.dots:
                 dot.velocity[1] += self.earth_acceleration * dt
+        status_text += f" (tick {self.count})"
+        self.status.text(status_text)
 
     async def sync_display(self):
         # xxx this should be a basic feature of H5Gizmos, not something we have to do manually in the sim
@@ -83,7 +90,10 @@ class DisksSim:
         self.startButton = startButton
         self.gravityButton = gravityButton
         self.earthButton = earthButton
+        status = gz.Text("Status: Ready")
+        self.status = status
         dashboard = gz.Stack([
+            status,
             diagram,
             startButton,
             gravityButton,
@@ -138,6 +148,7 @@ class DisksSim:
             while self.sim_running:
                 # sleep for a short time to avoid blocking the event loop
                 await asyncio.sleep(0.03)
+                self.count += 1
                 current_time = time.time()
                 dt = current_time - self.last_update_time
                 self.last_update_time = current_time
