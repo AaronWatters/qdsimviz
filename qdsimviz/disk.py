@@ -11,7 +11,7 @@ class Disk(Dot):
     def __init__(self, xy, velocity, radius, mass=None):
         if mass is None:
             mass = np.pi * radius**2  # Assuming density = 1
-        super().__init__(xy, velocity, radius, mass)
+        super(Disk, self).__init__(xy, velocity, radius, mass)
 
     @property
     def xy(self):
