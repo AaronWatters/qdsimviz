@@ -4,7 +4,7 @@ to run a simulation.
 """
 
 import numpy as np
-from .ball import vec
+from .dot import vec
 
 class Box:
 

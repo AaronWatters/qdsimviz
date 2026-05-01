@@ -5,7 +5,7 @@ to run a simulation.
 
 import wassilypy
 import numpy as np
-from .disk import vec
+from .dot import vec
 
 class Page:
 
