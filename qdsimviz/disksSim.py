@@ -29,6 +29,8 @@ class DisksSim:
     last_update_time = None
     gravity = False
     gravitational_constant = 100.0
+    earth = False
+    earth_acceleration = 100.0
 
     def __init__(self):
         self.border = self.make_border()
@@ -61,6 +63,9 @@ class DisksSim:
             for i in range(len(self.dots)):
                 for j in range(i + 1, len(self.dots)):
                     self.dots[i].gravity(self.dots[j], dt, G=self.gravitational_constant)
+        if self.earth:
+            for dot in self.dots:
+                dot.velocity[1] += self.earth_acceleration * dt
 
     async def sync_display(self):
         # xxx this should be a basic feature of H5Gizmos, not something we have to do manually in the sim
@@ -74,12 +79,15 @@ class DisksSim:
         diagram = wassilypy.Diagram(self.width, self.height)
         startButton = gz.Button("Start").set_on_click(self.toggle_start)
         gravityButton = gz.Button("Gravity").set_on_click(self.toggle_gravity)
+        earthButton = gz.Button("Earth").set_on_click(self.toggle_earth)
         self.startButton = startButton
         self.gravityButton = gravityButton
+        self.earthButton = earthButton
         dashboard = gz.Stack([
             diagram,
             startButton,
             gravityButton,
+            earthButton,
         ])
         await dashboard.link()
         #frame = diagram.mainFrame
@@ -97,6 +105,13 @@ class DisksSim:
 
     def mark(self, location, radius):
         return self.frame.circle(location, radius).colored(randomRGBString())
+
+    def toggle_earth(self, *ignored):
+        self.earth = not self.earth
+        if self.earth:
+            self.earthButton.text("No Earth")
+        else:
+            self.earthButton.text("Earth")
 
     def toggle_gravity(self, *ignored):
         self.gravity = not self.gravity
