@@ -5,6 +5,10 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "qdsimviz"
 dynamic = ["version", "description"]
+dependencies = [
+    "wassilypy",
+    "numpy",
+]
 
 [project.optional-dependencies]
 test = ["pytest"]
