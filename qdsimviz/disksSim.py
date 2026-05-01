@@ -24,37 +24,43 @@ class DisksSim:
     max_radius = 80
     min_speed = 10
     max_speed = 60
-    max_disks = 10
+    max_dots = 10
     sim_running = False
     last_update_time = None
     gravity = False
     gravitational_constant = 100.0
 
     def __init__(self):
-        self.page = Page(self.width, self.height)
-        self.disks = []
-        for _ in range(self.max_disks):
-            radius = np.random.uniform(self.min_radius, self.max_radius)
-            xy = np.random.uniform(radius, self.width - radius, size=2)
-            speed = np.random.uniform(self.min_speed, self.max_speed)
-            angle = np.random.uniform(0, 2 * np.pi)
-            velocity = speed * np.array((np.cos(angle), np.sin(angle)))
-            disk = Disk(xy, velocity, radius)
-            self.disks.append(disk)
+        self.border = self.make_border()
+        self.dots = []
+        for _ in range(self.max_dots):
+            self.dots.append(self.make_dot())
+
+    def make_border(self):
+        return Page(self.width, self.height)
+
+    def make_dot(self):
+        radius = np.random.uniform(self.min_radius, self.max_radius)
+        xy = np.random.uniform(radius, self.width - radius, size=2)
+        speed = np.random.uniform(self.min_speed, self.max_speed)
+        angle = np.random.uniform(0, 2 * np.pi)
+        velocity = speed * np.array((np.cos(angle), np.sin(angle)))
+        disk = Disk(xy, velocity, radius)
+        return disk
     
     def update(self, dt):
-        for disk in self.disks:
+        for disk in self.dots:
             disk.move(dt)
-            disk.boundary_bounce(self.page)
-        for i in range(len(self.disks)):
-            for j in range(i + 1, len(self.disks)):
-                if self.disks[i].collides_with(self.disks[j]):
+            disk.boundary_bounce(self.border)
+        for i in range(len(self.dots)):
+            for j in range(i + 1, len(self.dots)):
+                if self.dots[i].collides_with(self.dots[j]):
                     #print(f"Collision between disk {i} and disk {j}")
-                    self.disks[i].bounce(self.disks[j])
+                    self.dots[i].bounce(self.dots[j])
         if self.gravity:
-            for i in range(len(self.disks)):
-                for j in range(i + 1, len(self.disks)):
-                    self.disks[i].gravity(self.disks[j], dt, G=self.gravitational_constant)
+            for i in range(len(self.dots)):
+                for j in range(i + 1, len(self.dots)):
+                    self.dots[i].gravity(self.dots[j], dt, G=self.gravitational_constant)
 
     async def sync_display(self):
         # xxx this should be a basic feature of H5Gizmos, not something we have to do manually in the sim
@@ -76,13 +82,21 @@ class DisksSim:
             gravityButton,
         ])
         await dashboard.link()
-        frame = diagram.mainFrame
-        self.frame = frame
-        disk_circles = []
-        for disk in self.disks:
-            circle = frame.circle(disk.xy, disk.radius).colored(randomRGBString())
-            disk_circles.append([disk, circle])
-        self.disk_circles = disk_circles
+        #frame = diagram.mainFrame
+        #self.frame = frame
+        self.set_geometry(diagram)
+        dot_marks = []
+        for dot in self.dots:
+            #circle = frame.circle(disk.xy, disk.radius).colored(randomRGBString())
+            mark = self.mark(dot.pos, dot.radius)
+            dot_marks.append([dot, mark])
+        self.dot_marks = dot_marks
+
+    def set_geometry(self, diagram):
+        self.frame = diagram.mainFrame
+
+    def mark(self, location, radius):
+        return self.frame.circle(location, radius).colored(randomRGBString())
 
     def toggle_gravity(self, *ignored):
         self.gravity = not self.gravity
@@ -113,9 +127,12 @@ class DisksSim:
                 dt = current_time - self.last_update_time
                 self.last_update_time = current_time
                 self.update(dt)
-                for disk, circle in self.disk_circles:
-                    circle.centerAt(disk.xy)
+                self.update_positions()
                 await self.sync_display()
         finally:
             self.sim_running = False
             self.startButton.text("Start")
+
+    def update_positions(self):
+        for dot, mark in self.dot_marks:
+            mark.centerAt(dot.pos)
