@@ -95,9 +95,7 @@ class DisksSim:
         dashboard = gz.Stack([
             status,
             diagram,
-            startButton,
-            gravityButton,
-            earthButton,
+            [startButton,gravityButton,earthButton],
         ])
         await dashboard.link()
         #frame = diagram.mainFrame
