@@ -1,5 +1,7 @@
 # qdsimviz
-Quick and dirty experimental visual simulations
+Quick and dirty experimental visual simulations.
+
+<img src="balls.png" width="500"/>
 
 ## Development
 
