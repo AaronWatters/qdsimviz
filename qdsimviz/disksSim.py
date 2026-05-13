@@ -76,14 +76,17 @@ class DisksSim:
 
     async def sync_display(self):
         # xxx this should be a basic feature of H5Gizmos, not something we have to do manually in the sim
-        gizmo = self.frame.on_diagram.gizmo
+        gizmo = self.gizmo
         reconnect_id = gizmo.H5GIZMO_INTERFACE.reconnect_id
         got_id = await gz.get(reconnect_id)
         #print (f"Got reconnect id: {got_id}")
         return got_id
+    
+    def get_diagram(self):
+        return wassilypy.Diagram(self.width, self.height)
 
     async def display(self):
-        diagram = wassilypy.Diagram(self.width, self.height)
+        diagram = self.get_diagram()
         startButton = gz.Button("Start").set_on_click(self.toggle_start)
         gravityButton = gz.Button("Gravity").set_on_click(self.toggle_gravity)
         earthButton = gz.Button("Earth").set_on_click(self.toggle_earth)
@@ -98,6 +101,7 @@ class DisksSim:
             [startButton,gravityButton,earthButton],
         ])
         await dashboard.link()
+        self.gizmo = diagram.gizmo # hack
         #frame = diagram.mainFrame
         #self.frame = frame
         self.set_geometry(diagram)
